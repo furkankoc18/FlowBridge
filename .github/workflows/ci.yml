@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/check-version.sh
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.75"
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace --locked
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/test-macos-app.sh
+      - run: ./scripts/build-macos-app.sh
+      - run: codesign --verify --deep --strict dist/FlowBridge.app
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet format .\apps\windows\FlowBridge.Windows\FlowBridge.Windows.csproj --verify-no-changes
+      - run: dotnet build .\apps\windows\FlowBridge.Windows\FlowBridge.Windows.csproj -c Release
+      - run: dotnet run --project .\apps\windows\FlowBridge.Windows.CoreTests\FlowBridge.Windows.CoreTests.csproj -c Release
+      - name: Audit NuGet packages
+        shell: pwsh
+        run: |
+          $report = dotnet list .\apps\windows\FlowBridge.Windows\FlowBridge.Windows.csproj package --vulnerable --include-transitive
+          $report
+          if (($report -join "`n") -match "has the following vulnerable packages") { exit 1 }
+      - run: dotnet build .\apps\windows\FlowBridge.ControlSmoke\FlowBridge.ControlSmoke.csproj -c Release
+      - run: dotnet build .\apps\windows\FlowBridge.DiscoverySmoke\FlowBridge.DiscoverySmoke.csproj -c Release
+      - run: .\scripts\build-windows.ps1

@@ -1,0 +1,19 @@
+* text=auto
+
+*.sh text eol=lf
+*.swift text eol=lf
+*.rs text eol=lf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.xaml text eol=lf
+*.ps1 text eol=lf
+*.iss text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+
+*.png binary
+*.ico binary
+*.icns binary
+*.dmg binary
+*.zip binary
+*.exe binary

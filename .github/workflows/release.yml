@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tag version
+        run: test "$GITHUB_REF_NAME" = "v$(<VERSION)"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.75"
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace --locked
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    needs: verify
+    runs-on: macos-14
+    env:
+      MAC_CERTIFICATE_AVAILABLE: ${{ secrets.MACOS_CERTIFICATE_P12 != '' }}
+      MAC_SIGNING_AVAILABLE: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGNING_IDENTITY != '' }}
+      MAC_NOTARY_AVAILABLE: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_APP_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tag version
+        run: test "$GITHUB_REF_NAME" = "v$(<VERSION)"
+      - name: Import Developer ID certificate
+        if: ${{ env.MAC_CERTIFICATE_AVAILABLE == 'true' }}
+        env:
+          CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/flowbridge.keychain-db"
+          echo "$CERTIFICATE_P12" | base64 -D > "$RUNNER_TEMP/flowbridge.p12"
+          security create-keychain -p flowbridge "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p flowbridge "$KEYCHAIN"
+          security import "$RUNNER_TEMP/flowbridge.p12" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: -s -k flowbridge "$KEYCHAIN"
+      - name: Test and build app
+        env:
+          FLOWBRIDGE_CODESIGN_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          FLOWBRIDGE_MACOS_ARCHS: arm64 x86_64
+        run: |
+          ./scripts/test-macos-app.sh
+          if [[ "$MAC_SIGNING_AVAILABLE" != "true" ]]; then export FLOWBRIDGE_CODESIGN_IDENTITY=-; fi
+          ./scripts/build-macos-app.sh
+          ./scripts/build-macos-dmg.sh
+      - name: Notarize signed DMG
+        if: ${{ env.MAC_NOTARY_AVAILABLE == 'true' }}
+        env:
+          SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          codesign --force --timestamp --sign "$SIGNING_IDENTITY" dist/FlowBridge-macOS.dmg
+          xcrun notarytool submit dist/FlowBridge-macOS.dmg --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --wait
+          xcrun stapler staple dist/FlowBridge-macOS.dmg
+          (cd dist && shasum -a 256 FlowBridge-macOS.dmg > FlowBridge-macOS.dmg.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flowbridge-macos
+          path: |
+            dist/FlowBridge-macOS.dmg
+            dist/FlowBridge-macOS.dmg.sha256
+
+  windows:
+    needs: verify
+    runs-on: windows-latest
+    env:
+      WINDOWS_CERTIFICATE_AVAILABLE: ${{ secrets.WINDOWS_CERTIFICATE_PFX != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet run --project .\apps\windows\FlowBridge.Windows.CoreTests\FlowBridge.Windows.CoreTests.csproj -c Release
+      - name: Audit NuGet packages
+        shell: pwsh
+        run: |
+          $report = dotnet list .\apps\windows\FlowBridge.Windows\FlowBridge.Windows.csproj package --vulnerable --include-transitive
+          $report
+          if (($report -join "`n") -match "has the following vulnerable packages") { exit 1 }
+      - run: .\scripts\build-windows.ps1
+      - name: Import and sign portable executable
+        if: ${{ env.WINDOWS_CERTIFICATE_AVAILABLE == 'true' }}
+        shell: pwsh
+        env:
+          CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+          CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP "flowbridge.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CERTIFICATE_PFX))
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString $env:CERTIFICATE_PASSWORD -AsPlainText -Force)
+          "FLOWBRIDGE_CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Where-Object FullName -Match '\\x64\\' | Select-Object -Last 1
+          & $signtool.FullName sign /sha1 $cert.Thumbprint /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 .\dist\windows-x64\FlowBridge.exe
+          Compress-Archive -Path .\dist\windows-x64\FlowBridge.exe, .\dist\windows-x64\README.md, .\dist\windows-x64\LICENSE.txt -DestinationPath .\dist\FlowBridge-Windows-x64.zip -Force
+          ((Get-FileHash .\dist\FlowBridge-Windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant() + "  FlowBridge-Windows-x64.zip") | Set-Content .\dist\FlowBridge-Windows-x64.zip.sha256 -Encoding ascii
+      - name: Build installer
+        shell: pwsh
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" .\installer\FlowBridge.iss'
+      - name: Sign installer
+        if: ${{ env.WINDOWS_CERTIFICATE_AVAILABLE == 'true' }}
+        shell: pwsh
+        run: |
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Where-Object FullName -Match '\\x64\\' | Select-Object -Last 1
+          & $signtool.FullName sign /sha1 $env:FLOWBRIDGE_CERT_THUMBPRINT /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 .\dist\FlowBridge-Windows-x64-Setup.exe
+      - name: Installer checksum
+        shell: pwsh
+        run: '((Get-FileHash .\dist\FlowBridge-Windows-x64-Setup.exe -Algorithm SHA256).Hash.ToLowerInvariant() + "  FlowBridge-Windows-x64-Setup.exe") | Set-Content .\dist\FlowBridge-Windows-x64-Setup.exe.sha256 -Encoding ascii'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flowbridge-windows
+          path: |
+            dist/FlowBridge-Windows-x64.zip
+            dist/FlowBridge-Windows-x64.zip.sha256
+            dist/FlowBridge-Windows-x64-Setup.exe
+            dist/FlowBridge-Windows-x64-Setup.exe.sha256
+
+  publish:
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: flowbridge-*
+          merge-multiple: true
+          path: release
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release/* --draft --generate-notes --title "FlowBridge ${GITHUB_REF_NAME#v}"

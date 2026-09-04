@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DSoft.Makaretu.Dns.Multicast" Version="1.0.2412.112" />
+    <Compile Include="../FlowBridge.Windows/Services/ServiceName.cs" Link="ServiceName.cs" />
+  </ItemGroup>
+</Project>

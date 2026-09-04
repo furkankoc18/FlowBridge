@@ -1,0 +1,15 @@
+/target/
+/.build/
+/dist/
+apps/macos/.build/
+apps/windows/**/bin/
+apps/windows/**/obj/
+**/*.rs.bk
+.DS_Store
+*.p12
+*.pfx
+*.cer
+*.key
+*.mobileprovision
+.env
+.env.*
