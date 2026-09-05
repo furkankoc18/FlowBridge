@@ -13,7 +13,7 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: ./scripts/check-version.sh
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -29,7 +29,7 @@ jobs:
   macos:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: ./scripts/test-macos-app.sh
       - run: ./scripts/build-macos-app.sh
       - run: codesign --verify --deep --strict dist/FlowBridge.app
@@ -37,7 +37,7 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
