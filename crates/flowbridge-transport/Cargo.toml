@@ -11,7 +11,7 @@ flowbridge-protocol = { path = "../flowbridge-protocol" }
 rustls = { version = "0.23.43", default-features = false, features = ["ring", "std"] }
 
 [dev-dependencies]
-rcgen = "=0.12.1"
+rcgen = "=0.14.10"
 time = "=0.3.36"
 
 [lints]
