@@ -7,3 +7,15 @@ Generation brief:
 > Desktop application icon for macOS Dock and Windows taskbar. Two minimal rounded screen shapes connected by a clean two-way bridge/arrow motif; no letters. Premium modern vector-friendly 3D icon, crisp at small sizes, macOS squircle composition that crops well to a Windows square. Indigo-to-cyan gradient on deep navy, centered with generous safe margins, transparent outer background, no text or watermark, readable at 16 px.
 
 The `.icns` can be rebuilt on macOS with `iconutil -c icns icons/FlowBridge.iconset -o assets/FlowBridge.icns`. Rebuilding the multi-resolution `.ico` requires an image tool that supports Windows icon containers, such as ImageMagick.
+
+## GitHub product previews
+
+The privacy-safe images in `docs/images` are deterministic previews rendered from the current SwiftUI and WPF layout language. They deliberately use fictional device names and are labeled as product previews rather than native screenshots.
+
+To regenerate them, install Playwright and Chromium locally, then run:
+
+```bash
+npm install --no-save playwright
+npx playwright install chromium
+node scripts/render-github-images.mjs
+```

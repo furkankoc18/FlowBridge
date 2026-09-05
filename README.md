@@ -1,5 +1,7 @@
 # FlowBridge
 
+![FlowBridge running across macOS and Windows](docs/images/flowbridge-hero.png)
+
 FlowBridge is an open-source, local-network mouse sharing app for macOS and Windows. Pair two computers, move the pointer through the configured screen edge, and keep using the same physical mouse on the other machine.
 
 The current `0.4.0` release supports macOS ↔ Windows, macOS ↔ macOS, and Windows ↔ Windows. It transfers pointer movement, left/right/middle clicks, and scrolling. Keyboard, clipboard, and file transfer are roadmap items and are deliberately not advertised as working features.
@@ -28,6 +30,8 @@ Download the newest files from the repository's **Releases** page.
 3. Grant **Accessibility** and **Input Monitoring** in System Settings → Privacy & Security.
 4. Quit and reopen FlowBridge after granting both permissions.
 
+If an unsigned development build still reports a missing permission after the app was replaced, remove the old FlowBridge row from both privacy panels, add the installed `FlowBridge.app` again, and reopen it. Ad-hoc signatures change when a local binary is rebuilt; Developer ID signed releases keep a stable signing identity.
+
 An unsigned community build may be blocked by Gatekeeper. Maintainer releases should be Developer ID signed and notarized as described in [the release guide](docs/RELEASE.md). For an unsigned local build, right-click the app and choose **Open** only when you trust the source and checksum.
 
 ### Windows 10/11 x64
@@ -49,6 +53,14 @@ Unsigned community builds can display a SmartScreen warning. Maintainer releases
 For Mac ↔ Windows, Mac exits on the right and Windows exits on the left. Same-platform pairs choose complementary left/right edges deterministically, so both directions remain available.
 
 See [the Turkish hands-on test plan](docs/TESTING.tr.md) for a complete validation checklist.
+
+## Interface previews
+
+These privacy-safe product previews are rendered from the current SwiftUI and WPF layouts. They use fictional device names; exact native controls can vary with the operating-system version and theme.
+
+| macOS | Windows |
+| --- | --- |
+| ![FlowBridge macOS interface preview](docs/images/flowbridge-macos-preview.png) | ![FlowBridge Windows interface preview](docs/images/flowbridge-windows-preview.png) |
 
 ## Build from source
 

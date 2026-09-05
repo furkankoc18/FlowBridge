@@ -29,7 +29,8 @@ final class MouseSharingController {
         transport = SecureMouseTransport(localID: localID)
     }
 
-    func configure(enabled: Bool, targetPeerID: String?, exitEdge: TransferEdge = .right) {
+    @discardableResult
+    func configure(enabled: Bool, targetPeerID: String?, exitEdge: TransferEdge = .right) -> Bool {
         self.enabled = enabled
         self.targetPeerID = targetPeerID
         self.exitEdge = exitEdge
@@ -39,6 +40,8 @@ final class MouseSharingController {
             deactivateRemote()
             removeTap()
         }
+        guard let eventTap else { return false }
+        return CGEvent.tapIsEnabled(tap: eventTap)
     }
 
     func invalidatePeerKey(_ peerID: String) {

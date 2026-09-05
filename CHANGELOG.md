@@ -16,3 +16,5 @@ All notable changes to FlowBridge are documented here. The project follows seman
 - Changed the macOS bundle and Keychain service from the development identifier to the stable public identifier; `0.3.x` macOS users must pair once again after upgrading.
 - Replaced the abandoned .NET Standard mDNS dependency with its maintained .NET 8 fork to remove vulnerable legacy transitive packages.
 - Updated the dormant Rust TLS helper from rustls 0.21 to rustls 0.23.43 and rustls-webpki 0.103.15.
+- Fixed macOS mouse sharing being disabled when Input Monitoring preflight reports a stale false negative even though a live HID event tap is available.
+- Decoupled the macOS receiver from Input Monitoring so Windows → Mac remains available whenever Accessibility permission is effective.

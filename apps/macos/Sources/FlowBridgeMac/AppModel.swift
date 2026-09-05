@@ -441,18 +441,23 @@ final class AppModel: ObservableObject {
 
     private func refreshMouseConfiguration() {
         let target = trustedMousePeer
-        let shouldEnable = isRunning
+        let shouldReceive = isRunning
             && mouseSharingEnabled
             && accessibility == .granted
-            && inputMonitoring == .granted
             && target != nil
-        mouseController.configure(
-            enabled: shouldEnable,
+        let captureReady = mouseController.configure(
+            enabled: shouldReceive,
             targetPeerID: target?.id,
             exitEdge: target.map(exitEdge(for:)) ?? .right
         )
-        mouseReceiver.setEnabled(shouldEnable)
-        if !shouldEnable { mouseSharingActive = false }
+        mouseReceiver.setEnabled(shouldReceive)
+        if captureReady, inputMonitoring == .missing {
+            // CGPreflightListenEventAccess can lag behind System Settings on
+            // some macOS releases. A live HID event tap is the authoritative
+            // signal that capture permission is effective.
+            inputMonitoring = .granted
+        }
+        if !shouldReceive || !captureReady { mouseSharingActive = false }
     }
 
     private func bringDashboardToFront() {

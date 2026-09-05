@@ -14,6 +14,7 @@ Bu planı yayın paketleriyle, mümkünse temiz kullanıcı hesaplarında uygula
 
 1. İki cihazı aynı güvenilir Wi-Fi/Ethernet ağına bağla. Misafir ağı veya istemci izolasyonu kullanma.
 2. Mac'te Erişilebilirlik ve Giriş İzleme izinlerini ver; uygulamayı tamamen kapatıp aç.
+   İmzasız uygulama yeni bir derlemeyle değiştirildiyse eski FlowBridge satırını iki izin listesinden kaldır, `/Applications/FlowBridge.app` dosyasını yeniden ekle ve uygulamayı aç.
 3. Windows'ta ağ profilini Özel yap. Teşhis → Özel ağ izni ver düğmesine basıp yönetici onayını ver.
 4. Teşhis ekranında keşif ve Mac izinlerinin hazır göründüğünü doğrula.
 
