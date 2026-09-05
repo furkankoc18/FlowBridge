@@ -12,7 +12,7 @@ rustls = { version = "0.23.43", default-features = false, features = ["ring", "s
 
 [dev-dependencies]
 rcgen = "=0.12.1"
-time = "=0.3.36"
+time = "=0.3.55"
 
 [lints]
 workspace = true
