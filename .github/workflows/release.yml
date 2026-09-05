@@ -11,7 +11,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify tag version
         run: test "$GITHUB_REF_NAME" = "v$(<VERSION)"
       - uses: dtolnay/rust-toolchain@stable
@@ -33,7 +33,7 @@ jobs:
       MAC_SIGNING_AVAILABLE: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGNING_IDENTITY != '' }}
       MAC_NOTARY_AVAILABLE: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_APP_PASSWORD != '' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify tag version
         run: test "$GITHUB_REF_NAME" = "v$(<VERSION)"
       - name: Import Developer ID certificate
@@ -84,7 +84,7 @@ jobs:
     env:
       WINDOWS_CERTIFICATE_AVAILABLE: ${{ secrets.WINDOWS_CERTIFICATE_PFX != '' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
