@@ -18,3 +18,5 @@ All notable changes to FlowBridge are documented here. The project follows seman
 - Updated the dormant Rust TLS helper from rustls 0.21 to rustls 0.23.43 and rustls-webpki 0.103.15.
 - Fixed macOS mouse sharing being disabled when Input Monitoring preflight reports a stale false negative even though a live HID event tap is available.
 - Decoupled the macOS receiver from Input Monitoring so Windows → Mac remains available whenever Accessibility permission is effective.
+- Made the non-secret macOS device ID stable outside Keychain and prevented ad-hoc rebuilds from blocking startup on stale Keychain ACL prompts.
+- Added a `0700`/`0600` Application Support key fallback for ad-hoc Mac builds with automatic migration to Keychain in Developer ID signed releases.

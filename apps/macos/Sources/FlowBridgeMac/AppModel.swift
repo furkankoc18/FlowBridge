@@ -29,7 +29,7 @@ final class AppModel: ObservableObject {
     private var permissionTimer: Timer?
 
     init() {
-        deviceID = KeychainIdentity.loadOrCreate()
+        deviceID = DeviceIdentityStore.loadOrCreate()
         deviceName = Host.current().localizedName ?? "Bu Mac"
         trustedPeerIDs = Set(UserDefaults.standard.stringArray(forKey: "trustedPeerIDs") ?? [])
         trustedPeerIDs = trustedPeerIDs.filter { PeerKeychain.load(peerID: $0) != nil }

@@ -19,7 +19,7 @@ After pairing:
 - Mouse datagrams use AES-256-GCM with destination-bound authenticated data.
 - A random per-process session ID plus monotonic sequence rejects replay within a session and permits safe restarts.
 - Pair completion and unpair operations require HMAC-SHA-256 proof of the pairing key.
-- macOS stores secrets in Keychain; Windows encrypts them with DPAPI for the current user.
+- Developer ID signed macOS releases store secrets in Keychain; Windows encrypts them with DPAPI for the current user. Ad-hoc macOS development builds use a permission-restricted (`0600`) per-user fallback file because their code identity changes after every rebuild; a signed build migrates the fallback key into Keychain.
 - Input is restored locally after 500 ms without authenticated heartbeat acknowledgement.
 
 The mDNS advertisement and periodic hello are intentionally unauthenticated and may be spoofed to create a fake *unpaired* device row. They cannot inject mouse input or perform trusted control operations without the pairing key.

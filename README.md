@@ -13,7 +13,7 @@ The current `0.4.0` release supports macOS ↔ Windows, macOS ↔ macOS, and Win
 - AES-256-GCM authenticated mouse packets
 - HMAC-authenticated pairing completion and unpair messages
 - Per-launch random transport session IDs and replay protection
-- Keys stored in macOS Keychain or Windows DPAPI-protected storage
+- Keys stored in macOS Keychain for signed releases or Windows DPAPI-protected storage
 - Bidirectional edge switching with an authenticated return signal
 - 500 ms heartbeat failsafe, global `Esc` recovery, and injected-event loop prevention
 - Native macOS SwiftUI and Windows WPF interfaces
@@ -30,7 +30,7 @@ Download the newest files from the repository's **Releases** page.
 3. Grant **Accessibility** and **Input Monitoring** in System Settings → Privacy & Security.
 4. Quit and reopen FlowBridge after granting both permissions.
 
-If an unsigned development build still reports a missing permission after the app was replaced, remove the old FlowBridge row from both privacy panels, add the installed `FlowBridge.app` again, and reopen it. Ad-hoc signatures change when a local binary is rebuilt; Developer ID signed releases keep a stable signing identity.
+If an unsigned development build still reports a missing permission after the app was replaced, remove the old FlowBridge row from both privacy panels, add the installed `FlowBridge.app` again, and reopen it. Ad-hoc signatures change when a local binary is rebuilt; Developer ID signed releases keep a stable signing identity. Ad-hoc builds store pairing keys in a user-only local file (`0600`) to avoid Keychain ACL deadlocks; signed releases migrate that key into Keychain.
 
 An unsigned community build may be blocked by Gatekeeper. Maintainer releases should be Developer ID signed and notarized as described in [the release guide](docs/RELEASE.md). For an unsigned local build, right-click the app and choose **Open** only when you trust the source and checksum.
 

@@ -29,6 +29,7 @@ Bu planı yayın paketleriyle, mümkünse temiz kullanıcı hesaplarında uygula
 7. Tekrar eşleştirip fare testlerine geç.
 
 Not: macOS `0.3.x` geliştirme sürümünden `0.4.0` yayın kimliğine ilk geçişte Keychain ve uygulama kimliği değiştiği için bir kez yeniden eşleştirme gerekir.
+Bu düzeltmeden önce oluşturulmuş yerel `0.4.0` ad-hoc derlemesi de eski Keychain tabanlı cihaz kimliğini kullandığından güncel pakete geçerken son kez yeniden eşleştirilmelidir.
 
 ## 4. Yön kombinasyonları
 

@@ -40,8 +40,10 @@ plutil -insert NSLocalNetworkUsageDescription -string "FlowBridge aynı ağdaki 
 plutil -insert NSBonjourServices -json '["_flowbridge._tcp"]' "$FLOWBRIDGE_CONTENTS/Info.plist"
 
 if [[ "$FLOWBRIDGE_CODESIGN_IDENTITY" == "-" ]]; then
+    plutil -insert FlowBridgeAdHocBuild -bool true "$FLOWBRIDGE_CONTENTS/Info.plist"
     codesign --force --deep --sign - "$FLOWBRIDGE_APP"
 else
+    plutil -insert FlowBridgeAdHocBuild -bool false "$FLOWBRIDGE_CONTENTS/Info.plist"
     codesign --force --deep --options runtime --timestamp \
         --sign "$FLOWBRIDGE_CODESIGN_IDENTITY" "$FLOWBRIDGE_APP"
 fi

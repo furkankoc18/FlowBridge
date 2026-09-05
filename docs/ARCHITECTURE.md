@@ -19,6 +19,8 @@ The initiator sends an ephemeral P-256 public key. The target answers with anoth
 
 The final `pairAccepted` message includes HMAC-SHA-256 over message type, sender, recipient, and request ID. A session is persisted only after local approval and a valid remote proof. `unpair` uses the same authenticated-control construction.
 
+The stable device identifier is non-secret and persists in platform user settings. Developer ID signed macOS releases store pairing keys in Keychain. Ad-hoc development builds use a per-user Application Support file with directory mode `0700` and key-file mode `0600`; a later signed build migrates that fallback key to a new Keychain service. This avoids stale Keychain ACL prompts when an ad-hoc binary is rebuilt.
+
 ## Mouse envelope v2
 
 The JSON envelope contains:
